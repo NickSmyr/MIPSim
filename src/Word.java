@@ -15,14 +15,14 @@ public class Word{
 	}
 	//0 for MSB , 31 for LSB
 	public char getBit(int bit){
-		System.err.println("getting bit " + bit);
+		// bit = 4 * hexIndex + offset
 		//The 4 bbits that contain the desired bit
-		char hexChar =contents.charAt(bit / contents.length());
+		int hexIndex = bit / 4;
+		char hexChar =contents.charAt(hexIndex);
 		//The offset within those 4 bits
 		int offset = bit % 4;
 		//Result bit is one or zero
-		char result = Utils.hexToBinary(hexChar).charAt(offset);
-		System.err.println("Got bit " + result );	
+		char result = Utils.hexToBinary(hexChar).charAt(offset);	
 		if(!(result == '0' || result == '1'))
 		 throw new RuntimeException("Found invalid bit");
 		return result;
