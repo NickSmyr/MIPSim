@@ -11,30 +11,36 @@ public class Word{
 		this.contents = contents;
 	}
 	public boolean verifyWord(String word){
-		return word.matches("[0-9A-F]{8}");
+		return word.matches("[01]*");
 	}
-	//0 for MSB , 31 for LSB
+	//0 for LSB , 31 for MSB
 	public char getBit(int bit){
-		// bit = 4 * hexIndex + offset
-		//The 4 bbits that contain the desired bit
-		int hexIndex = bit / 4;
-		char hexChar =contents.charAt(hexIndex);
-		//The offset within those 4 bits
-		int offset = bit % 4;
-		//Result bit is one or zero
-		char result = Utils.hexToBinary(hexChar).charAt(offset);	
-		if(!(result == '0' || result == '1'))
-		 throw new RuntimeException("Found invalid bit");
-		return result;
+		return contents.charAt(contents.length()-1-bit);
 	}
 
 	
 	public String toBinaryString(){
 		return Utils.hexToBinary(contents);
 	}
-	public String toString(){
-		return contents;
+	public String toHexString(){
+		if(contents.length()%4!=0){
+			return "unhexableWord";
+		}
+		else{
+			return Utils.binaryToHex(contents);
+		}
 	}
-	
+	//TODO Binary to int (Signed or unsigned)
+	public String toDecimalString(){
+		long value = 0;
+		long currentBitValue = 1;
+		for(int i = 0; i < contents.length(); i++){
+			if(getBit(i) == '1'){
+				value += currentBitValue;
+			}
+			currentBitValue *=2;
+		}
+		return String.valueOf(value);
+	}
 
 }

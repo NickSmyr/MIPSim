@@ -30,5 +30,16 @@ public class Utils{
 	public static String hexToBinary(char in){
 		return hexToBinary.get(String.valueOf(in));
 	}
-	
+	public static String binaryToHex(String in){
+		StringBuilder result = new StringBuilder();
+		for(int i = 0 ; i < in.length() ; i+=4){
+			StringBuilder bits = new StringBuilder();
+			bits.append(in.charAt(i));
+			bits.append(in.charAt(i+1));
+			bits.append(in.charAt(i+2));
+			bits.append(in.charAt(i+3));
+			result.append(binaryToHex.get(bits.toString()));
+		}
+		return "0x" + result.toString();
+	}	
 }
