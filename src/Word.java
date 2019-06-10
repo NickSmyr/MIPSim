@@ -30,7 +30,6 @@ public class Word{
 			return Utils.binaryToHex(contents);
 		}
 	}
-	//TODO Binary to int (Signed or unsigned)
 	public String toDecimalString(){
 		long value = 0;
 		long currentBitValue = 1;
@@ -42,5 +41,10 @@ public class Word{
 		}
 		return String.valueOf(value);
 	}
+	//Returns amount of bits in the word
+	public int size(){
+		return sontents.length();
+	}
+	//TODO get substring
 
 }
