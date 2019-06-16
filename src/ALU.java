@@ -49,8 +49,21 @@ public class ALU{
 		return predicate.test(Long.valueOf(temp.toIntegerString()));
 	}
 	//Bitwise operators
-	//TODO shift operator on words
+	//TODO test
+	public static Word SHIFT(Word a1, Word shamt){
+		return a1.rotateLeft(shamt.toUnsignedDecimal());
+	}
 	//TODO multiply
+	//Should return a 64 bit word
+	public static Word MULTIPLY(Word a1,Word a2){
+		//Initialize 64 bit low+high register(word);
+		//Result can have at most bits of a1 + bits of a2 
+		Word result = zeroExtend(new Word("0"),a1.size() + a2.size());
+		//While a2 is not empty
+		//pop lsb
+		//if 1 add to result
+		//shift left result by 1 
+	}
 	//TODO divide
 	public static char NOT(char a){
 		if(a == '0'){
@@ -79,7 +92,17 @@ public class ALU{
 	public static char NOR(char a,char b){
 		return NOT(OR(a,b));
 	}
+	/**
+		An adder that can perform add or sub with numbers
+		on two's complement form.
+		
+		Luckily i'm trying to virtualize a machine through a virtual machine
+		on my machine and i can use 32 or 64 bit adder functionality
+		through this method
+	**/
 	public String adder(Word a1,Word a2,char carry,boolean sub){
+		OVERFLOW = false;
+		if(a1.size() != a2.size()) throw new RuntimeException("Tried to use adder on different sized words");
 		StringBuilder result = new StringBuilder();
 		char carry = '0';
 		if(sub) {
@@ -95,6 +118,69 @@ public class ALU{
 		}
 		result.reverse();
 		if(carry == '1') OVERFLOW = true;
-		return  result.toString();
+		return  new Word(result.toString());
+	}
+	/**
+		Returns the negation of the word
+		plus 1. That is the negative value 
+		of a number in twos complement
+	**/
+	public Word negate(Word in){
+		//Negating in
+		in = NOT(in);
+		//Adding 1 to the Word
+		return adder(in,zeroExtend("1",in.size()),"0",false);
+		
+	}
+	/**
+	* Adds enough bits from the left so that the result is a 32-bit word
+	* If the leftmost bit is 1 , the added bits are all 1
+	* If the leftmost bit is 0 , the added bits are all 0
+	* TODO Test
+	**/
+	public static Word signExtend(Word in, int numBits){
+		int size = in.size();
+		if(size >= 32){
+			return in;
+		}
+		//Leftmost bit of input
+		char MSBBit = '0';
+		//Might be empty
+		if(size>0 && in.getBit(size-1)=='1' ) MSBBit = '1';
+		//Extending with MSBBit
+		StringBuilder result = new StringBuilder();
+		while(size < numBits){
+			result.append(MSBBit);
+			size++;
+		}
+		//Starting with MSB and moving to LSB
+		for(int i = in.size()-1; i >= 0 ; i--){
+			result.append(in.getBit(i));
+		}
+		return new Word(result.toString());
+	}
+	
+	/**
+	* Adds enough zero bits from the left so that the result is a word
+	* with numBits bits
+	* TODO Test
+	**/
+	public static Word zeroExtend(Word in, int numBits){
+		int size = in.size();
+		if(size >= numBits){
+			return in;
+			size++;
+		}
+		StringBuilder result = new StringBuilder();
+		//Adding enough zeros from the left
+		while(size < numBits){
+			result.append('0');
+		}
+		//Starting with MSB and moving to LSB
+		for(int i = in.size()-1; i >= 0 ; i--){
+			result.append(in.getBit(i));
+		}
+		return new Word(result.toString());
 	}
 }
+
