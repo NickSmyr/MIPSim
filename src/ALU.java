@@ -19,18 +19,19 @@ public class ALU{
 		return new Word(result.reverse().toString());
 		
 	}
-	//ALL FOR THE SAKE OF DRY 
+	//ALL FOR THE SAKE OF DRY
+	//TODO ALL NEED TESTING BTW 
 	public Word AND(Word in1,Word in2){
-		return binaryFunction(in1,in2,(x,y)->return AND(x,y));
+		return binaryFunction(in1,in2,(x,y)->{return AND(x,y);});
 	}
 	public Word OR(Word in1,Word in2){
-		return binaryFunction(in1,in2,(x,y)->return OR(x,y));
+		return binaryFunction(in1,in2,(x,y)->{return OR(x,y);});
 	}
 	public Word XOR(Word in1,Word in2){
-		return binaryFunction(in1,in2,(x,y)->return XOR(x,y));
+		return binaryFunction(in1,in2,(x,y)->{return XOR(x,y);});
 	}
 	public boolean GREATER_THAN(Word in1,Word in2){
-		return binaryPredicate(in1,in2,(x) -> return x>0;)
+		return binaryPredicate(in1,in2,(x) -> {return x>0;});
 	}
 	//TODO EQUAL
 	public Word binaryFunction(Word in1,Word in2,BiFunction<char,char,char> func){
@@ -53,20 +54,59 @@ public class ALU{
 	public static Word SHIFT(Word a1, Word shamt){
 		return a1.rotateLeft(shamt.toUnsignedDecimal());
 	}
-	//TODO multiply
-	//Should return a 64 bit word
+	/**
+		Multiplies the words. It is taken for granted
+		that both of them are in an unsigned form
+		TODO Test
+	**/
 	public static Word MULTIPLY(Word a1,Word a2){
 		//Initialize 64 bit low+high register(word);
 		//Result can have at most bits of a1 + bits of a2 
-		Word result = zeroExtend(new Word("0"),a1.size() + a2.size());
+		int originalSize = a1.size() + a2.size();
+		if(a1.size() != a2.size()) throw new RuntimeException("Tried to multiply different sized words");
+		Word result = zeroExtend(new Word("0"),originalSize);
 		//While a2 is not empty
-		//pop lsb
-		//if 1 add to result
-		//shift left result by 1 
+		while(a2.size() > 0){
+			//pop lsb
+			char lsb = a2.getBit(0);
+			a2 = a2.shiftRightUnsigned(1);
+			//if 1 add to result
+			if(lsb == '1'){
+				result = adder(result,zeroExtend(a1,originalSize),'0',false);
+			}
+			//shift left a1 by 1
+			a1 = a1.shiftLeftUnsigned(1);
+		}
+		return result; 
+	}
+	/**
+		Divides the words. It is taken for granted
+		that both of them are in an unsigned form
+		TODO Test
+	**/
+	public static Word DIVIDE(Word a1,Word a2){
+		//Initialize 64 bit low+high register(word);
+		//Result can have at most bits of a1 + bits of a2 
+		int originalSize = a1.size() + a2.size();
+		if(a1.size() != a2.size()) throw new RuntimeException("Tried to multiply different sized words");
+		Word result = zeroExtend(new Word("0"),originalSize);
+		//While a2 is not empty
+		while(a2.size() > 0){
+			//pop lsb
+			char lsb = a2.getBit(0);
+			a2 = a2.shiftRightUnsigned(1);
+			//if 1 add to result
+			if(lsb == '1'){
+				result = adder(result,zeroExtend(a1,originalSize),'0',false);
+			}
+			//shift left a1 by 1
+			a1 = a1.shiftLeftUnsigned(1);
+		}
+		return result; 
 	}
 	//TODO divide
 	public static char NOT(char a){
-		if(a == '0'){
+		if(a == '0'){	
 			return '1';
 		}
 		else return '0';

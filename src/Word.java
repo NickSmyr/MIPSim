@@ -9,17 +9,23 @@ public class Word{
 	 *	contents[0] is the MSB x1
 	 * contents[contents.length -1] is the LSB x31
 	 */
-	String contents;
+	private String contents;
 	public Word(String contents){
 		if(!verifyWord(contents)) throw new RuntimeException(
 				"Illegal word contents");
 		this.contents = contents;
 	}
-	//Copycontructor
+	//Copy constructor
 	public Word(Word other){
 		if(!verifyWord(contents)) throw new RuntimeException(
 				"Illegal word contents");
 		this.contents = other.contents();
+	}
+	//Creates a word based on an integer value
+	public Word(long value){
+		contents = decimalToBinary(value);
+		if(!verifyWord(contents)) throw new RuntimeException(
+				"Illegal word contents");
 	}
 	public boolean verifyWord(String word){
 		return word.matches("[01]*");
@@ -28,7 +34,12 @@ public class Word{
 	public char getBit(int bit){
 		return contents.charAt(contents.length()-1-bit);
 	}
-
+	/**
+		Returns the raw contents of the word as a String
+	**/
+	public String contents(){
+		return contents;
+	}
 	
 	public String toBinaryString(){
 		return Utils.hexToBinary(contents);
@@ -56,6 +67,20 @@ public class Word{
 		}
 		return value;
 	}
+	/**
+		Returns the equivalent number in binary format
+		with the leftmost character being the MSB
+	**/
+	public static String decimalToBinary(long in){
+		if(in == 0) return "0";
+		StringBuilder result = new StringBuilder();
+		while(in>0) {
+			if(in % 2 == 1) result.append('1');
+			else result.append('0');
+			in /= 2;
+		}
+		return result.reverse().toString();
+	}
 	//Returns amount of bits in the word
 	public int size(){
 		return contents.length();
@@ -65,34 +90,65 @@ public class Word{
 		i through j (inclusive)
 		i is the msb and j lsb as in green card notation
 		Word [26,16]
-		TODO Test
 	**/
 	public Word bits(int i,int j){
 		//Yea i know its confusing
 		//But because i have decided that the words
 		//Are going to be stored in MSB format
 		//It is going to be more convenient for memory ops
-		return new Word(contents.substring(contents.length()-1-i,contents.length()-1-j));
+		return new Word(contents.substring(contents.length()-1-i,contents.length()-1-j+1));
 	}
 	/**
 		Rotates the word left by amt positions
-		//TODO INVERSE INDEXES JESUSSSS
+		Bits that are removed from the right side
+		are appended from the left side
 	**/
-	public Word rotateRightLogical(long amt){
-		int i = amount % size()();
-  		return new Word(contents.substring(i) + contents.substring(0, i));
+	public Word shiftRightLogical(int amount){
+		int i = amount % size();
+  		return new Word(contents.substring(size()-i, size()) + contents.substring(0,size()-i));
 	}
-	//TODO INVERSE I
-	public Word rotateRightUnsigned(long amt){
-		int i = amount % size()();
-  		return new Word(contents.substring(i) + contents.substring(0, i));
+	/**
+		Rotates the word left by amt positions
+		Bits that are removed from the right side
+		are appended from the left side
+	**/
+	public Word shiftLeftLogical(int amount){
+		int i = amount % size();
+  		return new Word( contents.substring(i,size()) + contents.substring(0, i));
+	}
+	/**
+		Shifts the bits right by amount positions.
+		Zeros are appended from the left so that
+		the new word has the same amount of bits as 
+		the old word
+	**/
+	public Word shiftRightUnsigned(int amount){
+		int i = amount % size();
+		StringBuffer zeros = new StringBuffer();
+		for(int j = 0 ; j < i ; j++){
+			zeros.append('0');
+		}
+		return new Word(zeros.toString()+contents.substring(0,size()-i));
+	}
+	/**
+		Shifts the bits left by amount positions.
+		Zeros are appended from the right so that
+		the new word has the same amount of bits as 
+		the old word
+	**/
+	public Word shiftLeftUnsigned(int amount){
+		int i = amount % size();
+		StringBuffer zeros = new StringBuffer();
+		for(int j = 0 ; j < i ; j++){
+			zeros.append('0');
+		}
+		return new Word(contents.substring(i,size()) + zeros.toString());
 	}
 	/**
 		Appends another word at the end of the current one
-		//TODO Test
 	**/
 	public Word append(Word in){
-		Stringbuilder result = new StringBuilder();	
+		StringBuilder result = new StringBuilder();	
 		result.append(contents);
 		result.append(in.contents);
 		return new Word(result.toString());
