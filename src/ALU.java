@@ -4,13 +4,7 @@ public class ALU{
 	boolean OVERFLOW = false;
 	//ALU ops
 	//Basic addition
-	/**
-		Function that has the function of an adder
-		That means it can do both addition and 
-		subtraction
-		//TODO valid overflow check
-	**/
-	
+		
 	
 	public Word NOT(Word in){
 		StringBuilder result = new StringBuilder();
@@ -30,12 +24,24 @@ public class ALU{
 	public Word XOR(Word in1,Word in2){
 		return binaryFunction(in1,in2,(x,y)->{return XOR(x,y);});
 	}
+	public Word NOR(Word in1,Word in2){
+		return binaryFunction(in1,in2,(x,y)->{return NOR(x,y);});
+	}
 	public boolean GREATER_THAN(Word in1,Word in2){
 		return binaryPredicate(in1,in2,(x) -> {
 			return x>0;
 		});
 	}
-	//TODO EQUAL
+	public boolean EQUAL(Word in1,Word in2){
+		return binaryPredicate(in1,in2,(x)->{
+			return x==0;
+		});
+	}
+	public boolean NOT_EQUAL(Word in1,Word in2){
+		return binaryPredicate(in1,in2,(x)->{
+			return x!=0;
+		});
+	}
 	public Word binaryFunction(Word in1,Word in2,BiFunction<Character,Character,Character> func){
 		verifyEqualLengths(in1,in2);
 		StringBuilder result = new StringBuilder();
@@ -52,14 +58,13 @@ public class ALU{
 		return predicate.test(temp.toUnsignedDecimal());
 	}
 	//Bitwise operators
-	//TODO test
 	public static Word SHIFT(Word a1, Word shamt){
 		return a1.shiftLeftLogical((int)shamt.toUnsignedDecimal());
 	}
 	/**
 		Multiplies the words. It is taken for granted
 		that both of them are in an unsigned form
-		TODO Test
+		TODO Test + Signed twos complement 
 	**/
 	public Word MULTIPLY(Word a1,Word a2){
 		//Initialize 64 bit low+high register(word);
@@ -84,7 +89,7 @@ public class ALU{
 	/**
 		Divides the words. It is taken for granted
 		that both of them are in an unsigned form
-		TODO Test
+		TODO Test + Signed number multiplication
 	**/
 	public Word DIVIDE(Word a1,Word a2){
 		//Initialize 64 bit low+high register(word);
@@ -141,6 +146,8 @@ public class ALU{
 		Luckily i'm trying to virtualize a machine through a virtual machine
 		on my machine and i can use 32 or 64 bit adder functionality
 		through this method
+		//TODO valid overflow check
+
 	**/
 	public Word adder(Word a1,Word a2,char carry,boolean sub){
 		OVERFLOW = false;
@@ -179,7 +186,6 @@ public class ALU{
 	* Adds enough bits from the left so that the result is a 32-bit word
 	* If the leftmost bit is 1 , the added bits are all 1
 	* If the leftmost bit is 0 , the added bits are all 0
-	* TODO Test
 	**/
 	public static Word signExtend(Word in, int numBits){
 		int size = in.size();
@@ -206,7 +212,6 @@ public class ALU{
 	/**
 	* Adds enough zero bits from the left so that the result is a word
 	* with numBits bits
-	* TODO Test
 	**/
 	public static Word zeroExtend(Word in, int numBits){
 		int size = in.size();
