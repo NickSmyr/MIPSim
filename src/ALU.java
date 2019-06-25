@@ -1,3 +1,4 @@
+import java.util.function.*;
 public class ALU{
 	//flags
 	boolean OVERFLOW = false;
@@ -14,13 +15,12 @@ public class ALU{
 	public Word NOT(Word in){
 		StringBuilder result = new StringBuilder();
 		for(int i = 0; i < in.size();i++){
-			result.append(in.getBit(i));
+			result.append(NOT(in.getBit(i)));
 		}
 		return new Word(result.reverse().toString());
 		
 	}
-	//ALL FOR THE SAKE OF DRY
-	//TODO ALL NEED TESTING BTW 
+	
 	public Word AND(Word in1,Word in2){
 		return binaryFunction(in1,in2,(x,y)->{return AND(x,y);});
 	}
@@ -31,35 +31,37 @@ public class ALU{
 		return binaryFunction(in1,in2,(x,y)->{return XOR(x,y);});
 	}
 	public boolean GREATER_THAN(Word in1,Word in2){
-		return binaryPredicate(in1,in2,(x) -> {return x>0;});
+		return binaryPredicate(in1,in2,(x) -> {
+			return x>0;
+		});
 	}
 	//TODO EQUAL
-	public Word binaryFunction(Word in1,Word in2,BiFunction<char,char,char> func){
+	public Word binaryFunction(Word in1,Word in2,BiFunction<Character,Character,Character> func){
 		verifyEqualLengths(in1,in2);
 		StringBuilder result = new StringBuilder();
-		for(int i=0;i<in1.length();i++){
-			result.append(func.apply(in1,in2));
+		for(int i=0;i<in1.size();i++){
+			result.append(func.apply(in1.getBit(i),in2.getBit(i)));
 		}
 		return new Word(result.reverse().toString());
 	}
-	public boolean binaryPredicate(Word in1,Word in2,Predicate<Integer> predicate){
+	public boolean binaryPredicate(Word in1,Word in2,Predicate<Long> predicate){
 		verifyEqualLengths(in1,in2);
 		//Subtract in1-in2
-		Word temp = adder(in1,in2,"1",true);
+		Word temp = adder(in1,in2,'1',true);
 		//COnverts the substraction to a string of a integer and then to an integer
-		return predicate.test(Long.valueOf(temp.toIntegerString()));
+		return predicate.test(temp.toUnsignedDecimal());
 	}
 	//Bitwise operators
 	//TODO test
 	public static Word SHIFT(Word a1, Word shamt){
-		return a1.rotateLeft(shamt.toUnsignedDecimal());
+		return a1.shiftLeftLogical((int)shamt.toUnsignedDecimal());
 	}
 	/**
 		Multiplies the words. It is taken for granted
 		that both of them are in an unsigned form
 		TODO Test
 	**/
-	public static Word MULTIPLY(Word a1,Word a2){
+	public Word MULTIPLY(Word a1,Word a2){
 		//Initialize 64 bit low+high register(word);
 		//Result can have at most bits of a1 + bits of a2 
 		int originalSize = a1.size() + a2.size();
@@ -84,7 +86,7 @@ public class ALU{
 		that both of them are in an unsigned form
 		TODO Test
 	**/
-	public static Word DIVIDE(Word a1,Word a2){
+	public Word DIVIDE(Word a1,Word a2){
 		//Initialize 64 bit low+high register(word);
 		//Result can have at most bits of a1 + bits of a2 
 		int originalSize = a1.size() + a2.size();
@@ -140,15 +142,16 @@ public class ALU{
 		on my machine and i can use 32 or 64 bit adder functionality
 		through this method
 	**/
-	public String adder(Word a1,Word a2,char carry,boolean sub){
+	public Word adder(Word a1,Word a2,char carry,boolean sub){
 		OVERFLOW = false;
 		if(a1.size() != a2.size()) throw new RuntimeException("Tried to use adder on different sized words");
 		StringBuilder result = new StringBuilder();
-		char carry = '0';
+		
 		if(sub) {
-			a2 = NOT(a2);	
+			a2 = NOT(a2);
+			carry = '1';	
 		}
-		for(int i = 0; i < 32 ; i++){
+		for(int i = 0; i < a1.size() ; i++){
 			//These two XORs are equivalent to one
 			//XOR gate with 3 inputs
 			char a = a1.getBit(i);
@@ -169,7 +172,7 @@ public class ALU{
 		//Negating in
 		in = NOT(in);
 		//Adding 1 to the Word
-		return adder(in,zeroExtend("1",in.size()),"0",false);
+		return adder(in,zeroExtend(new Word("1"),in.size()),'0',false);
 		
 	}
 	/**
@@ -209,18 +212,21 @@ public class ALU{
 		int size = in.size();
 		if(size >= numBits){
 			return in;
-			size++;
 		}
 		StringBuilder result = new StringBuilder();
 		//Adding enough zeros from the left
 		while(size < numBits){
 			result.append('0');
+			size++;
 		}
 		//Starting with MSB and moving to LSB
 		for(int i = in.size()-1; i >= 0 ; i--){
 			result.append(in.getBit(i));
 		}
 		return new Word(result.toString());
+	}
+	public static boolean verifyEqualLengths(Word a1, Word a2){
+		return a1.size()==a2.size();
 	}
 }
 
