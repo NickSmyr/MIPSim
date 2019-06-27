@@ -1,16 +1,31 @@
+/**
+ *	Class that represents the memory being used by a program
+ *	running on the MIPSMachine	
+ *
+ *	Current implementation enforces that read and writes only happen
+ *	on addresses that are multiples of 4 (lw that reference addresses
+ *	not multiples of 4 must be handled by the cpu and entail multiple
+ *	reads to the memory)
+ *
+ **/
 public class Memory{
-	byte[][] instructions;
+	//A map that contains mappings from addresses to 32 bit words
+	TreeMap<> addresses = new TreeMap<Long,Word>();
 	//Reads 4 bytes from address until address+4
-	public byte[] read(long address){return null;}
-	//Writes 4 bytes at address until address +4		
-	public byte[] write(long address){return null;}
+	public Word read(long address){
+		if(address % 4 != 0){
+			throw new RuntimeException("Referenced a memory address that is not a multiple of 4");
+		}
+		Word a1 = addresses.get(address); 
+		if(a1 == null){
+			addresses.put(address,new Word("000000000000000000"))
+		}
+		return null;
 
-	////////DEBUG
-	//Allocates 16MB of memory for testing purposes
-	byte[][] mem;
-	public void prototypeInit(){
-		mem = new byte[1<<22][4];
-		System.err.printf("Memory size1 = %d\n",mem.length);
-		System.err.printf("Memory size2 = %d\n",mem[0].length);
 	}
+	//Writes 4 bytes at address until address +4		
+	public void write(long address){
+		return null;
+	}
+
 }

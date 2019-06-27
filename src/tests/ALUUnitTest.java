@@ -1,4 +1,4 @@
-public class ALUUnitTest{
+	public class ALUUnitTest{
 	ALU alu;
 	public ALUUnitTest(){
 		alu = new ALU();
@@ -43,18 +43,11 @@ public class ALUUnitTest{
 		Word a2 = new Word("00110010");
 		return alu.adder(a1,a2,'1',true).contents().equals("00000001");
 	}
-	public boolean zeroExtendTest(){
-		Word a1 = new Word("00110011");
-		Word a2 = alu.zeroExtend(a1,16);
-		return a2.contents().equals("0000000000110011");
-	}
-	public boolean signExtendTest(){
-		Word a1 = new Word("00110011");
-		Word a2 = new Word("11001100");
-		Word res1 = alu.signExtend(a1,16);
-		Word res2 = alu.signExtend(a2,16);
-		return res1.contents().equals("0000000000110011") && res2.contents().equals("1111111111001100") ;
-
+	public boolean negate_Test(){
+		Word a1 = new Word("1101");
+		Word a2 = alu.negate(a1);
+		System.out.println("ERROR OUTPUT is  " + a2.contents());
+		return a2.contents().equals("0011");
 	}
 	public boolean EQUAL_Test(){
 		Word a1 = new Word("10001");

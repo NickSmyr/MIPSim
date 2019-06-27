@@ -71,7 +71,7 @@ public class ALU{
 		//Result can have at most bits of a1 + bits of a2 
 		int originalSize = a1.size() + a2.size();
 		if(a1.size() != a2.size()) throw new RuntimeException("Tried to multiply different sized words");
-		Word result = zeroExtend(new Word("0"),originalSize);
+		Word result = new Word("0").zeroExtend(originalSize);
 		//While a2 is not empty
 		while(a2.size() > 0){
 			//pop lsb
@@ -79,7 +79,7 @@ public class ALU{
 			a2 = a2.shiftRightUnsigned(1);
 			//if 1 add to result
 			if(lsb == '1'){
-				result = adder(result,zeroExtend(a1,originalSize),'0',false);
+				result = adder(result,a1.zeroExtend(originalSize),'0',false);
 			}
 			//shift left a1 by 1
 			a1 = a1.shiftLeftUnsigned(1);
@@ -96,7 +96,7 @@ public class ALU{
 		//Result can have at most bits of a1 + bits of a2 
 		int originalSize = a1.size() + a2.size();
 		if(a1.size() != a2.size()) throw new RuntimeException("Tried to multiply different sized words");
-		Word result = zeroExtend(new Word("0"),originalSize);
+		Word result = new Word("0").zeroExtend(originalSize);
 		//While a2 is not empty
 		while(a2.size() > 0){
 			//pop lsb
@@ -104,7 +104,7 @@ public class ALU{
 			a2 = a2.shiftRightUnsigned(1);
 			//if 1 add to result
 			if(lsb == '1'){
-				result = adder(result,zeroExtend(a1,originalSize),'0',false);
+				result = adder(result,a1.zeroExtend(originalSize),'0',false);
 			}
 			//shift left a1 by 1
 			a1 = a1.shiftLeftUnsigned(1);
@@ -178,57 +178,12 @@ public class ALU{
 	public Word negate(Word in){
 		//Negating in
 		in = NOT(in);
+		System.out.println("AFTER NOT" + in.contents());
 		//Adding 1 to the Word
-		return adder(in,zeroExtend(new Word("1"),in.size()),'0',false);
+		Word result = adder(in,new Word("1").zeroExtend(in.size()),'0',false);
+		System.out.println("RESULT + " + result.contents());
+		return result;
 		
-	}
-	/**
-	* Adds enough bits from the left so that the result is a 32-bit word
-	* If the leftmost bit is 1 , the added bits are all 1
-	* If the leftmost bit is 0 , the added bits are all 0
-	**/
-	public static Word signExtend(Word in, int numBits){
-		int size = in.size();
-		if(size >= 32){
-			return in;
-		}
-		//Leftmost bit of input
-		char MSBBit = '0';
-		//Might be empty
-		if(size>0 && in.getBit(size-1)=='1' ) MSBBit = '1';
-		//Extending with MSBBit
-		StringBuilder result = new StringBuilder();
-		while(size < numBits){
-			result.append(MSBBit);
-			size++;
-		}
-		//Starting with MSB and moving to LSB
-		for(int i = in.size()-1; i >= 0 ; i--){
-			result.append(in.getBit(i));
-		}
-		return new Word(result.toString());
-	}
-	
-	/**
-	* Adds enough zero bits from the left so that the result is a word
-	* with numBits bits
-	**/
-	public static Word zeroExtend(Word in, int numBits){
-		int size = in.size();
-		if(size >= numBits){
-			return in;
-		}
-		StringBuilder result = new StringBuilder();
-		//Adding enough zeros from the left
-		while(size < numBits){
-			result.append('0');
-			size++;
-		}
-		//Starting with MSB and moving to LSB
-		for(int i = in.size()-1; i >= 0 ; i--){
-			result.append(in.getBit(i));
-		}
-		return new Word(result.toString());
 	}
 	public static boolean verifyEqualLengths(Word a1, Word a2){
 		return a1.size()==a2.size();

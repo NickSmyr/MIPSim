@@ -34,6 +34,19 @@ public class WordUnitTest {
 		Word a2 = new Word("10001");
 		return a1.append(a2).contents().equals("100110001");
 	}
+	public boolean zeroExtendTest(){
+		Word a1 = new Word("00110011");
+		Word a2 = a1.zeroExtend(16);
+		return a2.contents().equals("0000000000110011");
+	}
+	public boolean signExtendTest(){
+		Word a1 = new Word("00110011");
+		Word a2 = new Word("11001100");
+		Word res1 = a1.signExtend(16);
+		Word res2 = a2.signExtend(16);
+		return res1.contents().equals("0000000000110011") && res2.contents().equals("1111111111001100") ;
+
+	}
 	public void runAll(){
 		System.out.println("It works");
 		System.out.println(getClass());

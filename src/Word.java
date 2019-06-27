@@ -153,5 +153,53 @@ public class Word{
 		result.append(in.contents);
 		return new Word(result.toString());
 	}
+	/**
+	* Adds enough bits from the left so that the result is a 32-bit word
+	* If the leftmost bit is 1 , the added bits are all 1
+	* If the leftmost bit is 0 , the added bits are all 0
+	**/
+	public Word signExtend(int numBits){
+		int size = this.size();
+		if(size >= 32){
+			return new Word(this);
+		}
+		//Leftmost bit of input
+		char MSBBit = '0';
+		//Might be empty
+		if(size>0 && this.getBit(size-1)=='1' ) MSBBit = '1';
+		//Extending with MSBBit
+		StringBuilder result = new StringBuilder();
+		while(size < numBits){
+			result.append(MSBBit);
+			size++;
+		}
+		//Starting with MSB and moving to LSB
+		for(int i = this.size()-1; i >= 0 ; i--){
+			result.append(this.getBit(i));
+		}
+		return new Word(result.toString());
+	}
+	
+	/**
+	* Adds enough zero bits from the left so that the result is a word
+	* with numBits bits
+	**/
+	public Word zeroExtend(int numBits){
+		int size = this.size();
+		if(size >= numBits){
+			return new Word(this);
+		}
+		StringBuilder result = new StringBuilder();
+		//Adding enough zeros from the left
+		while(size < numBits){
+			result.append('0');
+			size++;
+		}
+		//Starting with MSB and moving to LSB
+		for(int i = this.size()-1; i >= 0 ; i--){
+			result.append(this.getBit(i));
+		}
+		return new Word(result.toString());
+	}
 
 }
