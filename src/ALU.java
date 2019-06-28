@@ -153,7 +153,7 @@ public class ALU{
 		OVERFLOW = false;
 		if(a1.size() != a2.size()) throw new RuntimeException("Tried to use adder on different sized words");
 		StringBuilder result = new StringBuilder();
-		
+		carry = '0';	
 		if(sub) {
 			a2 = NOT(a2);
 			carry = '1';	
@@ -164,7 +164,7 @@ public class ALU{
 			char a = a1.getBit(i);
 			char b = a2.getBit(i);
 			result.append(XOR(XOR(a,b),carry));
-			carry = OR(OR(OR(a,b) , OR(a,carry)) , OR(b,carry));
+			carry = OR(OR(AND(a,b) , AND(a,carry)) ,  AND(b,carry));
 		}
 		result.reverse();
 		if(carry == '1') OVERFLOW = true;
@@ -178,10 +178,8 @@ public class ALU{
 	public Word negate(Word in){
 		//Negating in
 		in = NOT(in);
-		System.out.println("AFTER NOT" + in.contents());
 		//Adding 1 to the Word
 		Word result = adder(in,new Word("1").zeroExtend(in.size()),'0',false);
-		System.out.println("RESULT + " + result.contents());
 		return result;
 		
 	}

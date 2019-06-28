@@ -43,10 +43,15 @@
 		Word a2 = new Word("00110010");
 		return alu.adder(a1,a2,'1',true).contents().equals("00000001");
 	}
+	public boolean adder_Test(){
+		Word a1 = new Word("00011");
+		Word a2 = new Word("00001");
+		Word res = alu.adder(a1,a2,'0',false);
+		return res.contents().equals("00100");
+	}
 	public boolean negate_Test(){
 		Word a1 = new Word("1101");
 		Word a2 = alu.negate(a1);
-		System.out.println("ERROR OUTPUT is  " + a2.contents());
 		return a2.contents().equals("0011");
 	}
 	public boolean EQUAL_Test(){
