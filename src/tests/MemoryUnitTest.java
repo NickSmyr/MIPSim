@@ -1,6 +1,7 @@
 public class MemoryUnitTest {
-	Memory memory;
+	Memory memory = new Memory();
 	public boolean readWriteTest(){
+		System.out.println("Memory is + " + memory);
 		memory.write(0,new Word(0).zeroExtend(32));
 		memory.write(4,new Word(1).zeroExtend(32));
 		memory.write(8,new Word(2).zeroExtend(32));

@@ -36,6 +36,6 @@ public class Memory{
 		return;
 	}
 	public boolean validateAddress(long address){
-		return address % 4 != 0;
+		return address % 4 == 0;
 	}
 }
