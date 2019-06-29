@@ -101,7 +101,8 @@ public class MIPSMachine{
 	public void jump(Word address){
 		pc = address;
 	}
-	//TODO 
+	//TODO Correct address modification 
+	// i think i need to shift it by 2
 	public void jal(Word address){
 		//set ra to pc + 4
 		pc = address;
@@ -109,6 +110,67 @@ public class MIPSMachine{
 	public void jr(Word rs,Word rt,Word rd){
 		pc = getRegister(rs);
 	}
-	
-	
+	public void lbu(Word rs,Word rt,Word immediate){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+		//Adding immediate address and rt register\s contents
+		Word a1plusa2 = adder(a1,a2,'0',false);
+		Word result = memory.read(a1plusa2).bits(7,0).zeroExtend(a1.size());
+		setRegister(rt,result);
+	}
+	public void lhu(Word rs,Word rt,Word immediate){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+		//Adding immediate address and rt register\s contents
+		Word a1plusa2 = adder(a1,a2,'0',false);
+		Word result = memory.read(a1plusa2).bits(15,0).zeroExtend(a1.size());
+		setRegister(rt,result);
+	}	
+	public void loadLinked(Word rs,Word rt,Word immediate){
+		throw new RuntimeException("This simulator doesn't not support load linked op");
+	}
+	public void loadUpperImmediate(Word rs,Word rt,Word immediate){
+		setRegister(rt,immediate.append(new Word("0").zeroExtend(32)));
+	}
+	public void loadWord(Word rs,Word rt,Word immediate){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+		Word a1plusa2 = alu.adder(a1,a2,'0',false);
+		Word result = memory.read(a1plusa2);
+		setRegister(rt,result);
+	}	
+	public void nor(Word rs,Word rt,Word rd){
+		setRegister(rd,alu.NOR(getRegister(rs),getRegister(rt)));
+	}
+	public void or(Word rs,Word rt,Word rd){
+		setRegister(rd,alu.OR(getRegister(rs),getRegister(rt)));
+	}
+	public void ori(Word rs,Word rt,Word immediate){
+		setRegister(rs,alu.OR(getRegister(rs),immediate.zeroExtend()));
+	}
+	//TODO less than operator in alu
+	public void slt(Word rs,Word rt,Word rd){
+	}
+	//TODO Unsigned adder ?
+	public void sltiu(){
+	}
+	//TODO Unsigned adder?
+	public void sltu(){
+	}
+	public void sll(Word rd,Word rt,Wort shamt){
+		setRegister(rd,getRegister(rt).shiftLeftLogical(shamt.toUnsignedDecimal()));
+	}
+	public void srl(Word rd,Word rt,Wort shamt){
+		setRegister(rd,getRegister(rt).shiftRightLogical(shamt.toUnsignedDecimal()));
+	}
+	public void sb(Word rs,Word rt,Word immediate){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+		Word address = adder(a1,a2);
+
+		Word prev = memory.load(address);
+		Word res = prev.bits(prev.size()-1,8).append(getRegister(rt).bits(7,0));
+		memory.write(address,res);
+
+	}
 }
