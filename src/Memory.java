@@ -13,29 +13,65 @@ public class Memory{
 	//A map that contains mappings from addresses to 32 bit words
 	TreeMap<Long,Word> addresses = new TreeMap<Long,Word>();
 	//Reads 4 bytes from address until address+4
+	//TODO Test
 	public Word read(long address){
 		if(!validateAddress(address)){
 			throw new RuntimeException("Referenced a memory address that is not a multiple of 4");
 		}
-		Word a1 = addresses.get(address); 
+		long offset = address % 4;
+		long alignedAddress = address - offset;
+
+		Word a1 = addresses.get(allignedAddress); 
+		Word a2 = addresses.get(allignedAddress + 4); 
 		if(a1 == null){
 			addresses.put(address,new Word("00000000000000000000000000000000"));
-			a1 = addresses.get(address);
+			a1 = addresses.get(allignedAddress);
 		}
-		//The word is immutable so the a1 Word in the memory cannot be changed
-		//by operations of the ALU or the MIPSMachine
-		return a1;
-
+		if(a2 == null){
+			addresses.put(address,new Word("00000000000000000000000000000000"));
+			a2 = addresses.get(allignedAddress+4);
+		}
+		Word res1 = a1.bits(32 - offset*8 - 1,0);
+		Word res2 = new Word("");
+		//Unalligned address
+		if(offset > 0){
+			res2 = a2.bits(a2.size() - 1,a2.size() - offset*8 - 1)
+		}
+		return res1.append(res2);
 	}
 	//Writes 4 bytes at address until address +4		
+	//TODO Test (of by 1 errors)...
 	public void write(long address, Word data){
 		if(!validateAddress(address)){
 			throw new RuntimeException("Referenced a memory address that is not a multiple of 4");
 		}
-		addresses.put(address,data);
+		long offset = address % 4;
+		long alignedAddress = address - offset;
+
+		Word a1 = addresses.get(allignedAddress); 
+		Word a2 = addresses.get(allignedAddress + 4); 
+		if(a1 == null){
+			addresses.put(address,new Word("00000000000000000000000000000000"));
+			a1 = addresses.get(allignedAddress);
+		}
+		if(a2 == null){
+			addresses.put(address,new Word("00000000000000000000000000000000"));
+			a2 = addresses.get(allignedAddress+4);
+		}
+		//Bits that are kept the same at allignedAddress
+		Word head = new Word("");
+		if(offset > 0) head.append(a1.bits(31, 31 - offset*8));
+		head.append(data.bits(31,offset *8));
+		//Bits that are kept the same at allignedAddress+4
+		Word tail = a2;
+		if(offset > 0) tail=tail.bits(31 - offset*8 ,0);
+		tail = data.bits(offset*8 -1 , 0).append(tail);
+
+		addresses.write(alignedAddress,head);
+		addresses.write(alignedAddress+4,tail);
 		return;
 	}
 	public boolean validateAddress(long address){
-		return address % 4 == 0;
+		return address >=0;
 	}
 }

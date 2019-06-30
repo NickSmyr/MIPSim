@@ -21,12 +21,15 @@ public class MIPSMachine{
 	public void exec(Word instruction){
 	}
 	//get register
-	//TODO
-	public Word getRegister(int i){
-		return null;
+	//TODO Test
+	public Word getRegister(Word reg){
+		return registers[in.toUnsignedDecimal()];
 	}
-	//TODO
-	public void setRegister(int i,Word value){
+	//TODO Test
+	public void setRegister(Word reg,Word value){
+		long regNum = reg.toUnsignedDecimal();
+		if( regNum ==0 ) return;
+		registers[regNum] = value;
 		return;
 	}
 	//operations on registers
@@ -172,5 +175,34 @@ public class MIPSMachine{
 		Word res = prev.bits(prev.size()-1,8).append(getRegister(rt).bits(7,0));
 		memory.write(address,res);
 
+	}
+	public void sc(Word rs,Word rt,Word immediate){
+		throw new RuntimeException("This simulator doesn't support store conditional op");
+	}
+	public void sh(Word rs,Word rt,Word immediate){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+		Word address = adder(a1,a2);
+
+		Word prev = memory.load(address);
+		Word res = prev.bits(prev.size()-1,16).append(getRegister(rt).bits(15,0));
+		memory.write(address,res);
+	}
+	public void sw(Word rs,Word rt,Word immediate){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+		Word address = adder(a1,a2);
+
+		memory.write(address,getRegister(rt));
+	}
+	public void sub(Word rs,Word rt,Word rd){
+		Word a1 = getRegister(rs);
+		Word a2 = getRegister(rt);
+
+		setRegister(rd,adder(a1,a2,'1',true));
+	}
+	//TODO unsigned subber 
+	public void subu(Word rs,Word rt,Word rd){
+		
 	}
 }
