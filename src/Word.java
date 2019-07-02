@@ -202,4 +202,9 @@ public class Word{
 		return new Word(result.toString());
 	}
 
+	@Override
+	public String toString(){
+		//return String.valueOf(toUnsignedDecimal());
+		return contents();
+	}
 }
