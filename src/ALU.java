@@ -27,20 +27,33 @@ public class ALU{
 	public Word NOR(Word in1,Word in2){
 		return binaryFunction(in1,in2,(x,y)->{return NOR(x,y);});
 	}
-	public boolean GREATER_THAN(Word in1,Word in2){
-		return binaryPredicate(in1,in2,(x) -> {
-			return x>0;
-		});
+	public boolean LESS_THAN(Word in1,Word in2){
+		Word res = adder(in1,in2,'1',true); 
+		//If MSB is 1 then the result is a negative number
+		return res.getBit(res.size()-1) == '1';	
+	}
+	//TODO Test
+	public boolean LESS_THAN_UNSIGNED(Word in1,Word in2){
+		//The most significant bit that is different
+		//between the words
+		//determines which one
+		//is greater than which
+		for(int i = in1.size()-1; i >= 0; i--){
+			if(in1.getBit(i) != in2.getBit(i)){
+				if(in1.getBit(i) == '1'){
+					return true;
+				}
+				else if(in2.getBit() == '1'){
+					return false;
+				}
+			}
+		}
+		return false;
 	}
 	public boolean EQUAL(Word in1,Word in2){
-		return binaryPredicate(in1,in2,(x)->{
-			return x==0;
-		});
-	}
-	public boolean NOT_EQUAL(Word in1,Word in2){
-		return binaryPredicate(in1,in2,(x)->{
-			return x!=0;
-		});
+		Word res = adder(in1,in2,'1',true);
+		//returns true if the result is zero
+		return new Word('0').zeroExtend(res.size()).contents().equals(res.contents());
 	}
 	public Word binaryFunction(Word in1,Word in2,BiFunction<Character,Character,Character> func){
 		verifyEqualLengths(in1,in2);
@@ -49,13 +62,6 @@ public class ALU{
 			result.append(func.apply(in1.getBit(i),in2.getBit(i)));
 		}
 		return new Word(result.reverse().toString());
-	}
-	public boolean binaryPredicate(Word in1,Word in2,Predicate<Long> predicate){
-		verifyEqualLengths(in1,in2);
-		//Subtract in1-in2
-		Word temp = adder(in1,in2,'1',true);
-		//COnverts the substraction to a string of a integer and then to an integer
-		return predicate.test(temp.toUnsignedDecimal());
 	}
 	//Bitwise operators
 	public static Word SHIFT(Word a1, Word shamt){

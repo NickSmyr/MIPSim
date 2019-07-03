@@ -7,7 +7,7 @@ public class MIPSMachine{
 	public MIPSMachine(){
 		//initialize registers
 		registers = new Word[32];
-		for(int i = 0 ; i < registers.length ; i++ ){
+		for(int i = 0 ; i < registers.length ; i++){
 			registers[i] = new Word("0").zeroExtend(32);
 		}
 		//Initialize alu
@@ -153,12 +153,39 @@ public class MIPSMachine{
 	}
 	//TODO less than operator in alu
 	public void slt(Word rs,Word rt,Word rd){
+		Word a1 = getRegister(rs);
+		Word a2 = getRegister(rt);
+
+		if (alu.LESS_THAN(a1,a2)){
+			setRegister(rd,new Word('1').zeroExtend(a1.size()));
+		}
+		else {
+			setRegister(rd,new Word('0').zeroExtend(a1.size()));
+		}
 	}
 	//TODO Unsigned adder ?
-	public void sltiu(){
+	public void sltu(){ 
+		Word a1 = getRegister(rs);
+		Word a2 = getRegister(rt);
+
+		if (alu.LESS_THAN_UNSIGNED(a1,a2)){
+			setRegister(rd,new Word('1').zeroExtend(a1.size()));
+		}
+		else {
+			setRegister(rd,new Word('0').zeroExtend(a1.size()));
+		}
 	}
 	//TODO Unsigned adder?
-	public void sltu(){
+	public void slti(){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+
+		if (alu.LESS_THAN(a1,a2)){
+			setRegister(rd,new Word('1').zeroExtend(a1.size()));
+		}
+		else {
+			setRegister(rd,new Word('0').zeroExtend(a1.size()));
+		}	
 	}
 	public void sll(Word rd,Word rt,Wort shamt){
 		setRegister(rd,getRegister(rt).shiftLeftLogical(shamt.toUnsignedDecimal()));
@@ -195,14 +222,18 @@ public class MIPSMachine{
 
 		memory.write(address,getRegister(rt));
 	}
+	//TODO Overflow check
 	public void sub(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
 
 		setRegister(rd,adder(a1,a2,'1',true));
 	}
-	//TODO unsigned subber 
 	public void subu(Word rs,Word rt,Word rd){
-		
+		Word a1 = getRegister(rs);
+		Word a2 = getRegister(rt)		
+		Word res = alu.adder(a1,a2,'1',true);
+		//No overflow check on unsigned sub
+		setRegister(rd,res);
 	}
 }
