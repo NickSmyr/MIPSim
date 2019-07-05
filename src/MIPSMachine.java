@@ -44,6 +44,7 @@ public class MIPSMachine{
 		Word a1 = getRegister(rs.toUnsignedDecimal());
 		Word a2 = getRegister(rt.toUnsignedDecimal());
 		Word res = alu.adder(a1,a2,'0',false);
+		if ( alu.OVERFLOW ) throw new RuntimeException("Overflow on add");
 		setRegister(rd.toUnsignedDecimal(),res);
 	}
 	//TODO Overflwo check
@@ -52,6 +53,7 @@ public class MIPSMachine{
 		//immediate has less bits than the register (32)
 	       	immediate = immediate.signExtend(a1.size());	
 		Word res = alu.adder(a1,a2,'0',false);
+		if ( alu.OVERFLOW ) throw new RuntimeException("Overflow on addi");
 		setRegister(rt,res);
 	}
 	//TODO Test
@@ -101,8 +103,10 @@ public class MIPSMachine{
 			res = adder(res,immediate,'0',false);
 		}
 	}	
-	public void jump(Word address){
-		pc = address;
+	public void j(Word address){
+		Word jumpAddress = pc.bits(31,28).append(address)
+			.append(new Word("00"));
+		pc = jumpAddress;
 	}
 	//TODO Correct address modification 
 	// i think i need to shift it by 2
@@ -151,7 +155,6 @@ public class MIPSMachine{
 	public void ori(Word rs,Word rt,Word immediate){
 		setRegister(rs,alu.OR(getRegister(rs),immediate.zeroExtend()));
 	}
-	//TODO less than operator in alu
 	public void slt(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
@@ -163,7 +166,6 @@ public class MIPSMachine{
 			setRegister(rd,new Word('0').zeroExtend(a1.size()));
 		}
 	}
-	//TODO Unsigned adder ?
 	public void sltu(){ 
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
@@ -175,7 +177,6 @@ public class MIPSMachine{
 			setRegister(rd,new Word('0').zeroExtend(a1.size()));
 		}
 	}
-	//TODO Unsigned adder?
 	public void slti(){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
@@ -226,8 +227,9 @@ public class MIPSMachine{
 	public void sub(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
-
-		setRegister(rd,adder(a1,a2,'1',true));
+		Word res = adder(a1,a2,'1',true)
+		if ( alu.OVERFLOW ) throw new RuntimeException("Overflow on sub");
+		setRegister(rd,res);
 	}
 	public void subu(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);

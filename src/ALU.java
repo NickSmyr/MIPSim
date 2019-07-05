@@ -41,10 +41,10 @@ public class ALU{
 		for(int i = in1.size()-1; i >= 0; i--){
 			if(in1.getBit(i) != in2.getBit(i)){
 				if(in1.getBit(i) == '1'){
-					return true;
-				}
-				else if(in2.getBit() == '1'){
 					return false;
+				}
+				else if(in2.getBit(i) == '1'){
+					return true;
 				}
 			}
 		}
@@ -53,7 +53,7 @@ public class ALU{
 	public boolean EQUAL(Word in1,Word in2){
 		Word res = adder(in1,in2,'1',true);
 		//returns true if the result is zero
-		return new Word('0').zeroExtend(res.size()).contents().equals(res.contents());
+		return new Word("0").zeroExtend(res.size()).contents().equals(res.contents());
 	}
 	public Word binaryFunction(Word in1,Word in2,BiFunction<Character,Character,Character> func){
 		verifyEqualLengths(in1,in2);
@@ -72,52 +72,6 @@ public class ALU{
 		that both of them are in an unsigned form
 		TODO Test + Signed twos complement 
 	**/
-	public Word MULTIPLY(Word a1,Word a2){
-		//Initialize 64 bit low+high register(word);
-		//Result can have at most bits of a1 + bits of a2 
-		int originalSize = a1.size() + a2.size();
-		if(a1.size() != a2.size()) throw new RuntimeException("Tried to multiply different sized words");
-		Word result = new Word("0").zeroExtend(originalSize);
-		//While a2 is not empty
-		while(a2.size() > 0){
-			//pop lsb
-			char lsb = a2.getBit(0);
-			a2 = a2.shiftRightUnsigned(1);
-			//if 1 add to result
-			if(lsb == '1'){
-				result = adder(result,a1.zeroExtend(originalSize),'0',false);
-			}
-			//shift left a1 by 1
-			a1 = a1.shiftLeftUnsigned(1);
-		}
-		return result; 
-	}
-	/**
-		Divides the words. It is taken for granted
-		that both of them are in an unsigned form
-		TODO Test + Signed number multiplication
-	**/
-	public Word DIVIDE(Word a1,Word a2){
-		//Initialize 64 bit low+high register(word);
-		//Result can have at most bits of a1 + bits of a2 
-		int originalSize = a1.size() + a2.size();
-		if(a1.size() != a2.size()) throw new RuntimeException("Tried to multiply different sized words");
-		Word result = new Word("0").zeroExtend(originalSize);
-		//While a2 is not empty
-		while(a2.size() > 0){
-			//pop lsb
-			char lsb = a2.getBit(0);
-			a2 = a2.shiftRightUnsigned(1);
-			//if 1 add to result
-			if(lsb == '1'){
-				result = adder(result,a1.zeroExtend(originalSize),'0',false);
-			}
-			//shift left a1 by 1
-			a1 = a1.shiftLeftUnsigned(1);
-		}
-		return result; 
-	}
-	//TODO divide
 	public static char NOT(char a){
 		if(a == '0'){	
 			return '1';
@@ -150,10 +104,9 @@ public class ALU{
 		on two's complement form.
 		
 		Luckily i'm trying to virtualize a machine through a virtual machine
-		on my machine and i can use 32 or 64 bit adder functionality
-		through this method
-		//TODO valid overflow check
-
+		that i'm running on my virtual machine on my machine and i can use
+	       	32 or 64 bit adder functionality through this method
+				
 	**/
 	public Word adder(Word a1,Word a2,char carry,boolean sub){
 		OVERFLOW = false;
@@ -173,7 +126,7 @@ public class ALU{
 			carry = OR(OR(AND(a,b) , AND(a,carry)) ,  AND(b,carry));
 		}
 		result.reverse();
-		if(carry == '1') OVERFLOW = true;
+		if(XOR(carry,result.charAt(0)) == '1') OVERFLOW = true;
 		return  new Word(result.toString());
 	}
 	/**

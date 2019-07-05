@@ -33,11 +33,6 @@
 		return alu.NOT(a1).contents().equals("11001100");
 	}
 	
-	public boolean GREATER_THAN_Test(){
-		Word a1 = new Word("00110011");
-		Word a2 = new Word("00110010");
-		return alu.GREATER_THAN(a1,a2);
-	}
 	public boolean SUB_Test(){
 		Word a1 = new Word("00110011");
 		Word a2 = new Word("00110010");
@@ -62,6 +57,28 @@
 	public boolean NOT_EQUAL_Test(){
 		Word a1 = new Word("10001");
 		Word a2 = new Word("10000");
-		return alu.NOT_EQUAL(a1,a2);
+		return !alu.EQUAL(a1,a2);
+	}
+	public boolean LESS_THAN_Test(){
+		Word a1 = new Word("00001");
+		Word a2 = new Word("11000");
+		return alu.LESS_THAN(a2,a1);
+	}
+	public boolean LESS_THAN_UNSIGNED_Test(){
+		Word a1 = new Word("00001");
+		Word a2 = new Word("11000");
+		return alu.LESS_THAN_UNSIGNED(a1,a2);
+	}
+	public boolean OVERFLOW_Test(){
+		Word a1 = new Word("0111");
+		Word a2 = new Word("0001");
+
+		Word res = alu.adder(a1,a2,'0',false);
+		boolean res1 = alu.OVERFLOW ;
+		//TODO Negative overflow
+		a1 = new Word(1001);
+		a2 = new Word(1000);
+		return res1;
 	}
 }
+
