@@ -13,6 +13,16 @@ public class MIPSMachine{
 		//Initialize alu
 		alu = new ALU();
 	}
+	//Map that holds translations from register names to register
+	//numbers (e.g a0 - > 4 , a1 -> 5 , a2 -> 6)
+	HashMap name2reg = new HashMap()
+	public void initializeRegisterNames()throws IOException{
+		Scanner sc = new Scanner(new File("data/registerNumbers.conf"));
+		while(sc.hasNextLine()){
+			String[] data = sc.nextLine().split();
+			name2reg.put(data[0],data[1]);
+		}
+	}
 	/**
 		Executes instruction, input instruction
 		is 32 bits, MSB format
@@ -33,8 +43,9 @@ public class MIPSMachine{
 		return;
 	}
 	//operations on registers
-	public void advance_pc(long amt){
-		//pc += amt;
+	public void advance_pc(){
+		//Adding 4 to the pc
+		pc = alu.adder(pc,new Word(4).zeroExtend(pc.size()),'0',false);
 	}
 
 
@@ -88,19 +99,27 @@ public class MIPSMachine{
 	public void beq(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
+		//Branch address according to green cheat sheet
+		Word branchAddress = immediate.append(new Word("00")).signExtend(a1.size());
 		if(alu.EQUAL(a1,a2)){
 			Word res = adder(pc,new Word(4).signExtend(pc.size()),'0',false);
-			//Adding branch address
-			res = adder(res,immediate,'0',false);
+			// New address will be program counter + branch address
+			// but program counter is the next instruction after 
+			// this one
+			pc =  adder(branchAddress,pc,'0',false);
 		}
 	}
 	public void bne(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
+		//Branch address according to green cheat sheet
+		Word branchAddress = immediate.append(new Word("00")).signExtend(a1.size());
 		if(!alu.EQUAL(a1,a2)){
 			Word res = adder(pc,new Word(4).signExtend(pc.size()),'0',false);
-			//Adding branch address
-			res = adder(res,immediate,'0',false);
+			// New address will be program counter + branch address
+			// but program counter is the next instruction after 
+			// this one
+			pc =  adder(branchAddress,pc,'0',false);
 		}
 	}	
 	public void j(Word address){
@@ -108,14 +127,20 @@ public class MIPSMachine{
 			.append(new Word("00"));
 		pc = jumpAddress;
 	}
-	//TODO Correct address modification 
-	// i think i need to shift it by 2
+	//TODO register names to register array positions
 	public void jal(Word address){
 		//set ra to pc + 4
-		pc = address;
+		//input words in set/getRegister methods must be
+		//5 in size (up until number 31)
+		setRegister(new Word(31).zeroExtend(5),pc);
+		//Setting pc to jump address
+		Word jumpAddress = pc.bits(31,28).append(address)
+			.append(new Word("00"));
+		pc = jumpAddress;
 	}
 	public void jr(Word rs,Word rt,Word rd){
 		pc = getRegister(rs);
+
 	}
 	public void lbu(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
@@ -223,7 +248,6 @@ public class MIPSMachine{
 
 		memory.write(address,getRegister(rt));
 	}
-	//TODO Overflow check
 	public void sub(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
@@ -231,11 +255,17 @@ public class MIPSMachine{
 		if ( alu.OVERFLOW ) throw new RuntimeException("Overflow on sub");
 		setRegister(rd,res);
 	}
+	//TODO How the hell should i implement this
 	public void subu(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt)		
 		Word res = alu.adder(a1,a2,'1',true);
 		//No overflow check on unsigned sub
 		setRegister(rd,res);
+	}
+	//Must check the specified registers and then
+	//Do the appropriate action
+	public void syscall(){
+	
 	}
 }
