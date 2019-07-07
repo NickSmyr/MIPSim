@@ -15,9 +15,9 @@ public class MIPSMachine{
 	}
 	//Map that holds translations from register names to register
 	//numbers (e.g a0 - > 4 , a1 -> 5 , a2 -> 6)
-	HashMap name2reg = new HashMap()
+	HashMap<String,Integer> name2reg = new HashMap<String,Integer>();
 	public void initializeRegisterNames()throws IOException{
-		Scanner sc = new Scanner(new File("data/registerNumbers.conf"));
+		Scanner sc = new Scanner(new File("data/reg2num.conf"));
 		while(sc.hasNextLine()){
 			String[] data = sc.nextLine().split();
 			name2reg.put(data[0],data[1]);
@@ -34,6 +34,17 @@ public class MIPSMachine{
 	//TODO Test
 	public Word getRegister(Word reg){
 		return registers[in.toUnsignedDecimal()];
+	}
+	//Returns a the register from the register name
+	// e.g getReg("ra")
+	public Word getRegister(String regname){
+		return registers[name2reg.get(regname)];
+	}
+	public void setRegister(String regname,Word value){
+		long regNum = name2reg.get(regname); 
+		if( regNum ==0 ) return;
+		registers[regNum] = value;
+		return;
 	}
 	//TODO Test
 	public void setRegister(Word reg,Word value){
@@ -132,7 +143,7 @@ public class MIPSMachine{
 		//set ra to pc + 4
 		//input words in set/getRegister methods must be
 		//5 in size (up until number 31)
-		setRegister(new Word(31).zeroExtend(5),pc);
+		setRegister("ra",pc);
 		//Setting pc to jump address
 		Word jumpAddress = pc.bits(31,28).append(address)
 			.append(new Word("00"));
@@ -257,15 +268,56 @@ public class MIPSMachine{
 	}
 	//TODO How the hell should i implement this
 	public void subu(Word rs,Word rt,Word rd){
-		Word a1 = getRegister(rs);
-		Word a2 = getRegister(rt)		
+		//Words are treated as being 33 bit signed values
+		//and then they are subbed as usual
+		Word a1 = new Word("0").append(getRegister(rs));
+		Word a2 = new Word("0").append(getRegister(rt));		
 		Word res = alu.adder(a1,a2,'1',true);
 		//No overflow check on unsigned sub
-		setRegister(rd,res);
+		setRegister(rd,res.bits(31,0));
 	}
+	////////////////////////SYSCALLS/////////////////////////
 	//Must check the specified registers and then
 	//Do the appropriate action
 	public void syscall(){
-	
+		//print integer
+		//print string	
+		//read integer
+		//read string
+		//exit
 	}
+	/**
+	 * Prints the value of a0 to screen
+	 **/
+	public void print_integer(){
+		System.out.print(getRegister("a0").toUnsignedDecimal());
+	}
+	/**
+	 * Reads an integer from input and stores it at register v0.
+	 */
+	public void read_integer(){
+		Scanner sc = new Scanner(System.in);
+		int res = sc.nextInt();
+		Word result = new Word(res).zeroExtend(32);
+		if(result.size() > 32) {
+			throw new RuntimeException("Input value too large for 32 bits");
+		}
+		//Outputing result to v0 register
+		setRegister("v0",result);
+	}
+	/**
+	 * Prints the string at the address that a0 points to
+	 **/
+	public void print_string(){
+		//Get address of a0
+		//while byte is not '\0'
+		//print character	
+	}
+	public void read_string(){
+		//Read string from stdin
+		//Loop through every character
+		//Ouput encoded form of character to memory
+		//at address a0
+	}
+
 }

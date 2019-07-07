@@ -27,6 +27,9 @@ public class Word{
 		if(!verifyWord(contents)) throw new RuntimeException(
 				"Illegal word contents");
 	}
+	//TODO
+	public static wordFromCharacter(char in){
+	}
 	public boolean verifyWord(String word){
 		return word.matches("[01]*");
 	}
