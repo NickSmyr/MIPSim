@@ -47,6 +47,15 @@ public class WordUnitTest {
 		return res1.contents().equals("0000000000110011") && res2.contents().equals("1111111111001100") ;
 
 	}
+	public boolean characterTest(){
+		String test = "This is a test";
+		for ( char e : test.toCharArray() ){
+			Word a1 = Word.createFromChar(e);
+			char res = a1.getAsChar();
+			if (res != e) return false;
+		}
+		return true;
+	}
 	public void runAll(){
 		System.out.println("It works");
 		System.out.println(getClass());

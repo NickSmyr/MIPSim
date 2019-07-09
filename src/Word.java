@@ -27,8 +27,25 @@ public class Word{
 		if(!verifyWord(contents)) throw new RuntimeException(
 				"Illegal word contents");
 	}
-	//TODO
-	public static wordFromCharacter(char in){
+	/**
+	 *	For the purpose of representing characters as Word objects
+	 *	the arithmetic value of the character is stored in the Word
+	 *	object with, so that no involvment with character encodings
+	 *	is required 
+	 **/
+	public static final int CHARACTER_BITS = 16;
+	/**
+	 * Creates a word with CHARACTER_BITS amount of bits
+	 * that represents the input character
+	 **/
+	public static Word createFromChar(char in){
+		return new Word((int)in).zeroExtend(CHARACTER_BITS); 	
+	}
+	/** 
+	 * Returns the character this word represents
+	 **/
+	public char getAsChar(){
+		return (char)toUnsignedDecimal();
 	}
 	public boolean verifyWord(String word){
 		return word.matches("[01]*");

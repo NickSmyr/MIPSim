@@ -13,10 +13,9 @@ public class Memory{
 	//A map that contains mappings from addresses to 32 bit words
 	TreeMap<Long,Word> addresses = new TreeMap<Long,Word>();
 	//Reads 4 bytes from address until address+4
-	//TODO Test
 	public Word read(long address){
 		if(!validateAddress(address)){
-			throw new RuntimeException("Referenced a memory address that is not a multiple of 4");
+			throw new RuntimeException("Referenced an invalid address");
 		}
 		int offset = (int)address % 4;
 		long allignedAddress = address - offset;
@@ -42,10 +41,9 @@ public class Memory{
 		return res1.append(res2);
 	}
 	//Writes 4 bytes at address until address +4		
-	//TODO Test (of by 1 errors)...
 	public void write(long address, Word data){
 		if(!validateAddress(address)){
-			throw new RuntimeException("Referenced a memory address that is not a multiple of 4");
+			throw new RuntimeException("Referenced an invalid address");
 		}
 		int offset = (int)address % 4;
 		long allignedAddress = address - offset;

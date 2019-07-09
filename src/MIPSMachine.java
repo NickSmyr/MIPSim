@@ -310,12 +310,38 @@ public class MIPSMachine{
 	 **/
 	public void print_string(){
 		//Get address of a0
-		//while byte is not '\0'
-		//print character	
+		long address = getRegister("a0");
+		int characterSize = Word.CHARACTER_BITS;
+		//Geting char at address (one char ) 
+		Word currentChar = Memory.read(address).bits(31,32 - characterSize);
+		//while char is not '\0'
+		while (currrentChar.getAsChar() != '\0'){
+			System.out.print(currentChar.getAsChar());
+			address = address + characterSize;
+			currentChar = Memory.read(address).bits(31,32 - characterSize);
+		}	
 	}
 	public void read_string(){
 		//Read string from stdin
+		String input = "" 
+		try{
+			Scanner sc = new Scanner(System.in);
+			input = sc.nextLine();
+		}
+		catch(IOException e){
+			System.err.println("Couldn't read from stdin");
+			return;
+		}
+		finally{
+			sc.close();
+		}
 		//Loop through every character
+		long address = getRegister("a0");
+		int numChars = getRegister("a1");
+		int characterSize = Word.CHARACTER_BITS;
+		for (int i = 0 ; i < numChars ; i++){
+			Word currentChar = Word.createFromChar(input.charAt(i));
+		}
 		//Ouput encoded form of character to memory
 		//at address a0
 	}
