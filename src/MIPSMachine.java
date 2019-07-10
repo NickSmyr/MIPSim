@@ -29,6 +29,17 @@ public class MIPSMachine{
 	**/
 	//TODO
 	public void exec(Word instruction){
+		Word opcode = instruction.bits(31,26);
+		Word rs = instruction.bits(25,21);
+		Word rt = instruction.bits(20,16);
+		Word rd = instruction.bits(15,11);
+		Word shamt = instruction.bits(10,6);
+		Word funct = instruction.bits(5,0);
+		Word immediate = instruction.bits(15,0);
+		Word address = instruction.bits(25,0);
+		switch(opcode.toUnsignedDecimal()){
+		}
+			
 	}
 	//get register
 	//TODO Test
@@ -339,11 +350,48 @@ public class MIPSMachine{
 		long address = getRegister("a0");
 		int numChars = getRegister("a1");
 		int characterSize = Word.CHARACTER_BITS;
+		// word that gets filled with the characters that
+		// are to be output
+		Word outputWord = new Word("0");
 		for (int i = 0 ; i < numChars ; i++){
-			Word currentChar = Word.createFromChar(input.charAt(i));
+			//While there are still characters left
+			//and enough haven't been gathered to fill
+			//a word
+			while(outputWord.size() < 32 && i < numChars){
+				Word currentChar = Word.createFromChar(input.charAt(i));
+				outputWord.append(currentChar);
+				i++;
+			}
+			//If the string has not been completed
+			//the remaining characters are not enough
+			//to fill up a word and so the loop must
+			//broken 
+			if(i >= numChars){
+				break;
+			}
+			//This means that enough characters have been
+			//gathered so that they can fill a word
+			memory.write(address,outputWord);
+			outputWord = new Word("");
+			address += 4;
 		}
-		//Ouput encoded form of character to memory
-		//at address a0
+		//now the outputWord contains the characters that didnt
+		//fill up a word
+		outputWord.append(Word.createFromChar('\0'));
+		if(outputWord.size() == 32){
+			memory.write(address,outputWord);
+		}
+		else{
+			//We must write data that is less than a word
+			//Already existing data in memory at current
+			//address must be preserved
+			Word previousWord = memory.read(address);
+			//Data we are going to preserve
+			Word preserved = previousWord.bits(32-outputWord.size()-1,0);
+			//The final form of the word at current address
+			Word finalWord  = outputWord.append(preserved);
+			memory.write(address,finalWord);
+		}
 	}
 
 }
