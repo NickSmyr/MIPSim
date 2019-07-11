@@ -38,6 +38,72 @@ public class MIPSMachine{
 		Word immediate = instruction.bits(15,0);
 		Word address = instruction.bits(25,0);
 		switch(opcode.toUnsignedDecimal()){
+			//R format 
+			case 0:
+				//TODO Multiple actions on the same 
+				// opcode/function combination in the book
+				switch(funct.toUnsignedDecimal()){
+					case: 
+				}
+				break;
+			case 8:
+				addi(rs,rt,immediate);
+				break;
+			case 9:
+				addiu(rs,rt,immediate);	
+				break;
+			//0xc
+			case 12:
+				andi(rs,rt,immediate);
+				break;
+			case 4:
+				beq(rs,rt,immediate);
+				break;
+			case 5:
+				bne(rs,rt,immediate);
+				break;
+			case 2:
+				j(address);
+				break;
+			case 3: jal(address);
+				break;	
+			//TODO Rename loadlinked
+			case 3*16: 
+				break;
+			//0xf
+			case 15:
+				lui(rs,rt,immediate);
+				break;
+			case 2*16 +3:
+				lw(rs,rt,immediate);
+				break;
+			//0xd
+			case 13:
+				ori(rs,rt,immediate);
+				break;
+			//0xa
+			case 10:
+				slti(rs,rt,immediate);
+				break;
+			//0xb
+			case 11:
+				sltiu(rs,rt,immediate);
+				break;
+			case 2*16 + 8:
+				sb(rs,rt,immediate);
+				break;
+			//TODO Rename store conditional
+			case 3*16 + 8:
+				sc()
+				break;
+			case 2* 16 + 9:
+				sh(rs,rt,immediate);
+				break;
+			case 2 * 16 + 11:
+				sw(rs,rt,immediate);
+				break;
+			default:
+				throw new RuntimException("Unsupported opcode by the machine");
 		}
 			
 	}
@@ -180,13 +246,13 @@ public class MIPSMachine{
 		Word result = memory.read(a1plusa2).bits(15,0).zeroExtend(a1.size());
 		setRegister(rt,result);
 	}	
-	public void loadLinked(Word rs,Word rt,Word immediate){
+	public void ll(Word rs,Word rt,Word immediate){
 		throw new RuntimeException("This simulator doesn't not support load linked op");
 	}
-	public void loadUpperImmediate(Word rs,Word rt,Word immediate){
+	public void lui(Word rs,Word rt,Word immediate){
 		setRegister(rt,immediate.append(new Word("0").zeroExtend(32)));
 	}
-	public void loadWord(Word rs,Word rt,Word immediate){
+	public void lw(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
 		Word a1plusa2 = alu.adder(a1,a2,'0',false);
