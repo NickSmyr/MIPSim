@@ -40,10 +40,46 @@ public class MIPSMachine{
 		switch(opcode.toUnsignedDecimal()){
 			//R format 
 			case 0:
-				//TODO Multiple actions on the same 
-				// opcode/function combination in the book
 				switch(funct.toUnsignedDecimal()){
-					case: 
+					case 0:
+						sll(rd,rt,shamt);
+						break;
+					case 2:
+						srl(rd,rt,shamt);
+						break;
+					case 8:
+						jr(rs,rt,rd);
+						break;
+					case 2*16 :
+						add(rs,rt,rd);
+						break;
+					case 2*16 +1:
+						addu(rs,rt,rd);
+						break;
+					case 2*16 +2:
+						sub(rs,rt,rd);
+						break;
+					case 2*16 +3:
+						subu(rs,rt,rd);
+						break;
+					case 2*16 +4:
+						and(rs,rt,rd);
+						break;
+					case 2*16 +5:
+						or(rs,rt,rd);
+						break;
+					case 2*16 + 7:
+						nor(rs,rt,rd);
+						break;
+					case 2*16 + 10:
+						slt(rs,rt,rd);
+						break;
+					case 2*16 + 11:
+						sltu(rs,rt,rd);
+						break;
+					default:
+						throw new RuntimeException("Unsupported instruction with opcode 0");
+						break;
 				}
 				break;
 			case 8:
@@ -101,6 +137,11 @@ public class MIPSMachine{
 				break;
 			case 2 * 16 + 11:
 				sw(rs,rt,immediate);
+				break;
+			//Syscall opcode
+			//Credits to vaggourinos
+			case 27:
+				syscall();
 				break;
 			default:
 				throw new RuntimException("Unsupported opcode by the machine");
@@ -279,7 +320,7 @@ public class MIPSMachine{
 			setRegister(rd,new Word('0').zeroExtend(a1.size()));
 		}
 	}
-	public void sltu(){ 
+	public void sltu(Word rs,Word rt,Word rd){ 
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
 
@@ -290,7 +331,7 @@ public class MIPSMachine{
 			setRegister(rd,new Word('0').zeroExtend(a1.size()));
 		}
 	}
-	public void slti(){
+	public void slti(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
 
