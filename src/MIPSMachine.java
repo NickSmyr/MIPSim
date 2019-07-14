@@ -1,9 +1,12 @@
+import java.util.HashMap;
+import java.util.Scanner;
+import java.io.IOException;
+import java.io.File;
 public class MIPSMachine{
 	Word[] registers;
 	Word pc;
 	Memory memory;
 	ALU alu;
-	//TODO register to integer translation
 	public MIPSMachine(){
 		//initialize registers
 		registers = new Word[32];
@@ -12,6 +15,13 @@ public class MIPSMachine{
 		}
 		//Initialize alu
 		alu = new ALU();
+		try{
+			initializeRegisterNames();
+		}
+		catch(IOException e){
+			e.printStackTrace();
+			throw new RuntimeException("Couldn't initialize register names to numbers mapping");
+		}
 	}
 	//Map that holds translations from register names to register
 	//numbers (e.g a0 - > 4 , a1 -> 5 , a2 -> 6)
@@ -19,8 +29,8 @@ public class MIPSMachine{
 	public void initializeRegisterNames()throws IOException{
 		Scanner sc = new Scanner(new File("data/reg2num.conf"));
 		while(sc.hasNextLine()){
-			String[] data = sc.nextLine().split();
-			name2reg.put(data[0],data[1]);
+			String[] data = sc.nextLine().split("\\s");
+			name2reg.put(data[0],Integer.valueOf(data[1]));
 		}
 	}
 	/**
@@ -37,10 +47,10 @@ public class MIPSMachine{
 		Word funct = instruction.bits(5,0);
 		Word immediate = instruction.bits(15,0);
 		Word address = instruction.bits(25,0);
-		switch(opcode.toUnsignedDecimal()){
+		switch((int)opcode.toUnsignedDecimal()){
 			//R format 
 			case 0:
-				switch(funct.toUnsignedDecimal()){
+				switch((int)funct.toUnsignedDecimal()){
 					case 0:
 						sll(rd,rt,shamt);
 						break;
@@ -79,7 +89,6 @@ public class MIPSMachine{
 						break;
 					default:
 						throw new RuntimeException("Unsupported instruction with opcode 0");
-						break;
 				}
 				break;
 			case 8:
@@ -128,9 +137,8 @@ public class MIPSMachine{
 			case 2*16 + 8:
 				sb(rs,rt,immediate);
 				break;
-			//TODO Rename store conditional
 			case 3*16 + 8:
-				sc()
+				sc(rs,rt,immediate);
 				break;
 			case 2* 16 + 9:
 				sh(rs,rt,immediate);
@@ -144,14 +152,14 @@ public class MIPSMachine{
 				syscall();
 				break;
 			default:
-				throw new RuntimException("Unsupported opcode by the machine");
+				throw new RuntimeException("Unsupported opcode by the machine");
 		}
 			
 	}
 	//get register
 	//TODO Test
 	public Word getRegister(Word reg){
-		return registers[in.toUnsignedDecimal()];
+		return registers[(int)reg.toUnsignedDecimal()];
 	}
 	//Returns a the register from the register name
 	// e.g getReg("ra")
@@ -161,14 +169,14 @@ public class MIPSMachine{
 	public void setRegister(String regname,Word value){
 		long regNum = name2reg.get(regname); 
 		if( regNum ==0 ) return;
-		registers[regNum] = value;
+		registers[(int)regNum] = value;
 		return;
 	}
 	//TODO Test
 	public void setRegister(Word reg,Word value){
 		long regNum = reg.toUnsignedDecimal();
 		if( regNum ==0 ) return;
-		registers[regNum] = value;
+		registers[(int)regNum] = value;
 		return;
 	}
 	//operations on registers
@@ -181,18 +189,18 @@ public class MIPSMachine{
 	////////////////////////CORE INSTRUCTIONS/////////////////////////
 	//TODO Test + Exception handling
 	public void add(Word rs,Word rt,Word rd){
-		Word a1 = getRegister(rs.toUnsignedDecimal());
-		Word a2 = getRegister(rt.toUnsignedDecimal());
+		Word a1 = getRegister(rs);
+		Word a2 = getRegister(rt);
 		Word res = alu.adder(a1,a2,'0',false);
 		if ( alu.OVERFLOW ) throw new RuntimeException("Overflow on add");
-		setRegister(rd.toUnsignedDecimal(),res);
+		setRegister(rd,res);
 	}
 	//TODO Overflwo check
 	public void addi(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		//immediate has less bits than the register (32)
 	       	immediate = immediate.signExtend(a1.size());	
-		Word res = alu.adder(a1,a2,'0',false);
+		Word res = alu.adder(a1,immediate,'0',false);
 		if ( alu.OVERFLOW ) throw new RuntimeException("Overflow on addi");
 		setRegister(rt,res);
 	}
@@ -201,16 +209,16 @@ public class MIPSMachine{
 		Word a1 = getRegister(rs);
 		//immediate has less bits than the register (32)
 	       	immediate = immediate.signExtend(a1.size());	
-		Word res = alu.adder(a1,a2,'0',false);
+		Word res = alu.adder(a1,immediate,'0',false);
 		setRegister(rt,res);
 
 	}
 	//TODO Test
 	public void addu(Word rs,Word rt,Word rd){
-		Word a1 = getRegister(rs.toUnsignedDecimal());
-		Word a2 = getRegister(rt.toUnsignedDecimal());
+		Word a1 = getRegister(rs);
+		Word a2 = getRegister(rt);
 		Word res = alu.adder(a1,a2,'0',false);
-		setRegister(rd.toUnsignedDecimal(),res);
+		setRegister(rd,res);
 	}
 	public void and(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rd);
@@ -219,7 +227,7 @@ public class MIPSMachine{
 		setRegister(rd,res);
 	}
 	public void andi(Word rs,Word rt,Word immediate){
-		Word a1 = getRegister(rd);
+		Word a1 = getRegister(rs);
 		immediate = immediate.zeroExtend(a1.size());
 		Word res = alu.AND(a1,immediate);
 		setRegister(rt,res);
@@ -231,11 +239,11 @@ public class MIPSMachine{
 		//Branch address according to green cheat sheet
 		Word branchAddress = immediate.append(new Word("00")).signExtend(a1.size());
 		if(alu.EQUAL(a1,a2)){
-			Word res = adder(pc,new Word(4).signExtend(pc.size()),'0',false);
+			Word res = alu.adder(pc,new Word(4).signExtend(pc.size()),'0',false);
 			// New address will be program counter + branch address
 			// but program counter is the next instruction after 
 			// this one
-			pc =  adder(branchAddress,pc,'0',false);
+			pc =  alu.adder(branchAddress,pc,'0',false);
 		}
 	}
 	public void bne(Word rs,Word rt,Word immediate){
@@ -244,11 +252,11 @@ public class MIPSMachine{
 		//Branch address according to green cheat sheet
 		Word branchAddress = immediate.append(new Word("00")).signExtend(a1.size());
 		if(!alu.EQUAL(a1,a2)){
-			Word res = adder(pc,new Word(4).signExtend(pc.size()),'0',false);
+			Word res = alu.adder(pc,new Word(4).signExtend(pc.size()),'0',false);
 			// New address will be program counter + branch address
 			// but program counter is the next instruction after 
 			// this one
-			pc =  adder(branchAddress,pc,'0',false);
+			pc =  alu.adder(branchAddress,pc,'0',false);
 		}
 	}	
 	public void j(Word address){
@@ -275,16 +283,17 @@ public class MIPSMachine{
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
 		//Adding immediate address and rt register\s contents
-		Word a1plusa2 = adder(a1,a2,'0',false);
-		Word result = memory.read(a1plusa2).bits(7,0).zeroExtend(a1.size());
+		Word a1plusa2 = alu.adder(a1,a2,'0',false);
+		Word result = memory.read(a1plusa2.bits(7,0).zeroExtend(a1.size()).toUnsignedDecimal());
 		setRegister(rt,result);
 	}
 	public void lhu(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
 		//Adding immediate address and rt register\s contents
-		Word a1plusa2 = adder(a1,a2,'0',false);
-		Word result = memory.read(a1plusa2).bits(15,0).zeroExtend(a1.size());
+		Word a1plusa2 = alu.adder(a1,a2,'0',false);
+		Word result = memory.read(a1plusa2.toUnsignedDecimal())
+				.bits(15,0).zeroExtend(a1.size());
 		setRegister(rt,result);
 	}	
 	public void ll(Word rs,Word rt,Word immediate){
@@ -297,7 +306,7 @@ public class MIPSMachine{
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
 		Word a1plusa2 = alu.adder(a1,a2,'0',false);
-		Word result = memory.read(a1plusa2);
+		Word result = memory.read(a1plusa2.toUnsignedDecimal());
 		setRegister(rt,result);
 	}	
 	public void nor(Word rs,Word rt,Word rd){
@@ -307,7 +316,7 @@ public class MIPSMachine{
 		setRegister(rd,alu.OR(getRegister(rs),getRegister(rt)));
 	}
 	public void ori(Word rs,Word rt,Word immediate){
-		setRegister(rs,alu.OR(getRegister(rs),immediate.zeroExtend()));
+		setRegister(rs,alu.OR(getRegister(rs),immediate.zeroExtend(32)));
 	}
 	public void slt(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
@@ -331,31 +340,42 @@ public class MIPSMachine{
 			setRegister(rd,new Word('0').zeroExtend(a1.size()));
 		}
 	}
-	public void slti(Word rs,Word rt,Word rd){
+	public void slti(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
 
 		if (alu.LESS_THAN(a1,a2)){
-			setRegister(rd,new Word('1').zeroExtend(a1.size()));
+			setRegister(rt,new Word('1').zeroExtend(a1.size()));
 		}
 		else {
-			setRegister(rd,new Word('0').zeroExtend(a1.size()));
+			setRegister(rt,new Word('0').zeroExtend(a1.size()));
 		}	
 	}
-	public void sll(Word rd,Word rt,Wort shamt){
-		setRegister(rd,getRegister(rt).shiftLeftLogical(shamt.toUnsignedDecimal()));
+	public void sltiu(Word rs,Word rt,Word immediate){
+		Word a1 = getRegister(rs);
+		Word a2 = immediate.signExtend(a1.size());
+
+		if (alu.LESS_THAN_UNSIGNED(a1,a2)){ 
+			setRegister(rt,new Word('1').zeroExtend(a1.size()));
+		}
+		else {
+			setRegister(rt,new Word('0').zeroExtend(a1.size()));
+		}	
 	}
-	public void srl(Word rd,Word rt,Wort shamt){
-		setRegister(rd,getRegister(rt).shiftRightLogical(shamt.toUnsignedDecimal()));
+	public void sll(Word rd,Word rt,Word shamt){
+		setRegister(rd,getRegister(rt).shiftLeftLogical((int)shamt.toUnsignedDecimal()));
+	}
+	public void srl(Word rd,Word rt,Word shamt){
+		setRegister(rd,getRegister(rt).shiftRightLogical((int)shamt.toUnsignedDecimal()));
 	}
 	public void sb(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
-		Word address = adder(a1,a2);
+		Word address = alu.adder(a1,a2,'0',false);
 
-		Word prev = memory.load(address);
+		Word prev = memory.read(address.toUnsignedDecimal());
 		Word res = prev.bits(prev.size()-1,8).append(getRegister(rt).bits(7,0));
-		memory.write(address,res);
+		memory.write(address.toUnsignedDecimal(),res);
 
 	}
 	public void sc(Word rs,Word rt,Word immediate){
@@ -364,23 +384,23 @@ public class MIPSMachine{
 	public void sh(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
-		Word address = adder(a1,a2);
+		Word address = alu.adder(a1,a2,'0',false);
 
-		Word prev = memory.load(address);
+		Word prev = memory.read(address.toUnsignedDecimal());
 		Word res = prev.bits(prev.size()-1,16).append(getRegister(rt).bits(15,0));
-		memory.write(address,res);
+		memory.write(address.toUnsignedDecimal(),res);
 	}
 	public void sw(Word rs,Word rt,Word immediate){
 		Word a1 = getRegister(rs);
 		Word a2 = immediate.signExtend(a1.size());
-		Word address = adder(a1,a2);
+		Word address = alu.adder(a1,a2,'0',false);
 
-		memory.write(address,getRegister(rt));
+		memory.write(address.toUnsignedDecimal(),getRegister(rt));
 	}
 	public void sub(Word rs,Word rt,Word rd){
 		Word a1 = getRegister(rs);
 		Word a2 = getRegister(rt);
-		Word res = adder(a1,a2,'1',true)
+		Word res = alu.adder(a1,a2,'1',true);
 		if ( alu.OVERFLOW ) throw new RuntimeException("Overflow on sub");
 		setRegister(rd,res);
 	}
@@ -428,36 +448,37 @@ public class MIPSMachine{
 	 **/
 	public void print_string(){
 		//Get address of a0
-		long address = getRegister("a0");
+		long address = getRegister("a0").toUnsignedDecimal();
 		int characterSize = Word.CHARACTER_BITS;
 		//Geting char at address (one char ) 
-		Word currentChar = Memory.read(address).bits(31,32 - characterSize);
+		Word currentChar = memory.read(address).bits(31,32 - characterSize);
 		//while char is not '\0'
-		while (currrentChar.getAsChar() != '\0'){
+		while (currentChar.getAsChar() != '\0'){
 			System.out.print(currentChar.getAsChar());
 			address = address + characterSize;
-			currentChar = Memory.read(address).bits(31,32 - characterSize);
+			currentChar = memory.read(address).bits(31,32 - characterSize);
 		}	
 	}
-	public void read_string(){
+	public void read_string()throws IOException{
 		//Read string from stdin
-		String input = "" 
+		String input = "" ;
+		Scanner sc = null;
 		try{
-			Scanner sc = new Scanner(System.in);
+			sc = new Scanner(System.in);
 			input = sc.nextLine();
 		}
-		catch(IOException e){
+		catch(Exception e){
 			System.err.println("Couldn't read from stdin");
-			return;
+			throw new IOException("Couldn't read from stdin");
 		}
 		finally{
-			sc.close();
+			if(sc != null) sc.close();
 		}
 		//Loop through every character
-		long address = getRegister("a0");
-		int numChars = getRegister("a1");
+		long address = getRegister("a0").toUnsignedDecimal();
+		long numChars = getRegister("a1").toUnsignedDecimal();
 		int characterSize = Word.CHARACTER_BITS;
-		// word that gets filled with the characters that
+		// Word that gets filled with the characters that
 		// are to be output
 		Word outputWord = new Word("0");
 		for (int i = 0 ; i < numChars ; i++){
@@ -471,7 +492,7 @@ public class MIPSMachine{
 			}
 			//If the string has not been completed
 			//the remaining characters are not enough
-			//to fill up a word and so the loop must
+			//to fill up a Word and so the loop must
 			//broken 
 			if(i >= numChars){
 				break;
@@ -495,7 +516,7 @@ public class MIPSMachine{
 			Word previousWord = memory.read(address);
 			//Data we are going to preserve
 			Word preserved = previousWord.bits(32-outputWord.size()-1,0);
-			//The final form of the word at current address
+			//The final form of the Word at current address
 			Word finalWord  = outputWord.append(preserved);
 			memory.write(address,finalWord);
 		}
